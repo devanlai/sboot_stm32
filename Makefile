@@ -2,7 +2,7 @@ OUTDIR     ?= build
 FWNAME     ?= firmware
 SWNAME     ?= fwcrypt
 FWTOOLS	   ?= arm-none-eabi-
-CMSIS      ?= ../cmsis
+CMSIS      ?= ../CMSIS
 
 
 
@@ -38,7 +38,7 @@ vpath %.c $(SRCPATH)
 vpath %.S $(SRCPATH)
 
 #includes
-CMSISINC    = $(CMSIS)/device/ST $(CMSIS)/include
+CMSISINC    = $(CMSIS)/Device/ST $(CMSIS)/Include
 FWINCS      = $(CMSISINC) inc $(MODULES) $(MODULES)/inc
 SWINCS      = inc
 
