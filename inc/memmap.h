@@ -134,6 +134,42 @@
     #define SCB             0xE000ED00
     #define SCB_VTOR        0x08
 
+#elif defined(STM32F1)
+    #define FLASH_R_BASE    0x40022000
+    #define FLASH_ACR       0x00
+    #define FLASH_KEYR      0x04
+    #define FLASH_OPTKEYR   0x08
+    #define FLASH_SR        0x0C
+    #define FLASH_CR        0x10
+    #define FLASH_AR        0x14
+    #define FLASH_OPTR      0x1C
+    #define FLASH_KEY0      0x45670123
+    #define FLASH_KEY1      0xCDEF89AB
+    #define FLASH_OB_BASE   0x1FFFF800
+    #define FLASH_PAGESZ    0x400
+
+    #define RCC_BASE        0x40021000
+    #define RCC_CR          0x00
+    #define RCC_CFGR        0x04
+    #define RCC_APB2RSTR    0x0C
+    #define RCC_APB2ENR     0x18
+
+    #define GPIOA           0x40010800
+    #define GPIOB           0x40010C00
+    #define GPIOC           0x40011000
+    #define GPIOD           0x40011400
+    #define GPIOE           0x40011800
+    #define GPIOF           0x40011C00
+    #define GPIOG           0x40012000
+
+    #define GPIO_CRL        0x00
+    #define GPIO_CRH        0x04
+    #define GPIO_IDR        0x08
+    #define GPIO_ODR        0x0C
+    #define GPIO_BSRR       0x10
+
+    #define SCB             0xE000ED00
+    #define SCB_VTOR        0x08
 
 #endif
 

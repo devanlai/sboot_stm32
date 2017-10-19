@@ -382,6 +382,115 @@ seal_flash:
     b       Err_done
     .size seal_flash, . - seal_flash
 #endif
+#elif defined(STM32F1)
+#if ((DFU_BLOCKSZ % (FLASH_PAGESZ)) != 0)
+    #error DFU Transfer size must be divisible to MCU page size. Adjust DFU_BLOCKSZ
+#endif
+#define PG_MASK ((FLASH_PAGESZ) - 1)
+    .cpu cortex-m3
+    .thumb
+/* using RAM for this functions */
+    .section .data
+    .align 2
+    .thumb_func
+    .globl program_flash
+    .type program_flash, %function
+/* R0 <- address to flash
+ * R1 <- buffer
+ * R2 <- block size (nonzero less than 0x40)
+ * R0 -> DFU_STATUS
+ */
+program_flash:
+    push    {r4, r5, r6, lr}
+    //ldr     r0, =#0x00
+    //pop     {r4, r5, r6, pc}
+
+/* checking page alignment */
+    ldr     r4, =#PG_MASK
+    tst     r4, r0
+    bne     Err_unaligned
+/* unlocking program memory */
+    ldr     r3, =#FLASH_R_BASE
+    ldr     r4, =#FLASH_KEY0
+    ldr     r5, =#FLASH_KEY1
+    str     r4, [r3, #FLASH_KEYR]
+    str     r5, [r3, #FLASH_KEYR]
+    movs    r5, #0x00
+/* flash loop */
+.L_erase_page:
+/* do page erase */
+    movs    r4, #0x02 // PER
+    str     r4, [r3, #FLASH_CR]
+    adds    r4, r0, r5
+    str     r0, [r3, #FLASH_AR]
+    movs    r4, #0x42 // PER | STRT
+    str     r4, [r3, #FLASH_CR]
+    bl      wait_prog_done
+    mov     r4, #0x00
+    str     r4, [r3, #FLASH_CR]
+    bcc     Err_erase
+/* halfword write loop */
+.L_flash_halfword:
+    movs    r4, #0x01
+    str     r4, [r3, #FLASH_CR] // PG
+    ldrh    r4, [r1, r5]
+    strh    r4, [r0, r5]
+    bl      wait_prog_done
+    bcc     Err_prog
+/* do halfword verify */
+    ldrh    r4, [r0, r5]
+    ldrh    r6, [r1, r5]
+    cmp     r4, r6
+    bne     Err_verify
+/* check if all done */
+    adds    r5, #0x02
+    cmp     r2, r5
+    bls     Err_done
+/* check if starting a new page */
+    ldr     r4, =#PG_MASK
+    tst     r5, r4
+    beq     .L_erase_page
+    b       .L_flash_halfword
+/* all done */
+Err_done:
+    movs    r0, #0x00       //OK
+    b       .L_exit
+Err_unaligned:
+    movs    r0, #0x03       // errWRITE (unaligned access)
+    b       .L_exit
+Err_erase:
+    movs    r0, #0x04       //errERASE
+    b       .L_exit
+Err_prog:
+    movs    r0, #0x06       //errPROG
+    b       .L_exit
+Err_verify:
+    movs    r0, #0x07       //errVERIFY
+.L_exit:
+    movs    r4, #0x80
+    str     r4, [r3, #FLASH_CR] // locking flash
+    pop     {r4, r5, r6, pc}
+    .size program_flash, . - program_flash
+
+/* wait for programming done */
+/* return CF=0 if program failed */
+    .thumb_func
+    .type wait_prog_done, %function
+wait_prog_done:
+    ldr     r4, [r3, #FLASH_SR]
+    lsrs    r4, #0x01               //BSY -> CF
+    bcs     wait_prog_done          //wait BSY low
+    lsl     r4, #0x01
+    teq     r4, #0x20               //check for EOP
+    bne     .L_wpd_fail
+    ldr     r4, =#0x01              //set CF
+    lsrs    r4, #0x01
+.L_wpd_fail:
+    ldr     r4, [r3, #FLASH_SR]
+    str     r4, [r3, #FLASH_SR]     //clear EOP/WRPTERR/PGERR
+    bx      lr
+    .size wait_prog_done, . - wait_prog_done
+
 #else
     #error MPU not supported
 #endif

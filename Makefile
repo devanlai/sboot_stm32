@@ -131,6 +131,7 @@ FWTARGETS  += stm32l052x6 stm32l052x8 stm32l053x6 stm32l053x8
 FWTARGETS  += stm32l062x8 stm32l063x8
 FWTARGETS  += stm32l072v8 stm32l072xb stm32l072xc
 FWTARGETS  += stm32l073v8 stm32l073xb stm32l073xc
+FWTARGETS  += stm32f103xb
 
 stm32l100x6a :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m3 -mfloat-abi=soft' FWSTARTUP='mcu/stm32l1xx.S' FWDEFS='STM32L1 STM32L100xBA' FWSCRIPT='mcu/stm32l100x6a.ld'
@@ -233,5 +234,8 @@ stm32l476xe :
 
 stm32l476xg :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m4' FWSTARTUP='mcu/stm32l4xx.S' FWDEFS='STM32L4 STM32L476xx' FWSCRIPT='mcu/stm32l4xxxg.ld'
+
+stm32f103xb :
+	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m3 -mfloat-abi=soft' FWSTARTUP='mcu/stm32f1xx.S' FWDEFS='STM32F1 STM32F103xB' FWSCRIPT='mcu/stm32f1xxxb.ld'
 
 .PHONY: clean bootloader crypter all program rebuild fwclean $(FWTARGETS)
